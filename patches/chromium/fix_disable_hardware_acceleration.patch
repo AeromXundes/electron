@@ -1,0 +1,274 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Shelley Vohr <shelley.vohr@gmail.com>
+Date: Thu, 13 Jun 2019 14:49:19 -0700
+Subject: fix: disable hardware acceleration
+
+This reverts commit f82d631f6d537628a8a3f5b89a07ffeeaebb6c02.
+Chromium CL https://chromium-review.googlesource.com/c/chromium/src/+/1599993
+broke hardware acceleration.
+
+diff --git a/android_webview/browser/gfx/deferred_gpu_command_service.cc b/android_webview/browser/gfx/deferred_gpu_command_service.cc
+index f54642f979c943c7cb55b13227d57583df4c19ff..2b0535e652eee85a80eadc65184de01575e5e291 100644
+--- a/android_webview/browser/gfx/deferred_gpu_command_service.cc
++++ b/android_webview/browser/gfx/deferred_gpu_command_service.cc
+@@ -163,7 +163,6 @@ DeferredGpuCommandService::DeferredGpuCommandService(
+                                      nullptr,
+                                      gl::GLSurfaceFormat(),
+                                      shared_image_manager.get(),
+-                                     nullptr,
+                                      nullptr),
+       sync_point_manager_(std::move(sync_point_manager)),
+       mailbox_manager_(std::move(mailbox_manager)),
+diff --git a/components/viz/service/main/viz_main_impl.cc b/components/viz/service/main/viz_main_impl.cc
+index 53292ae76db018cf6b720dea605e57121bf5e362..a5a38f8ec00b52b01b63a318120647994c30df1d 100644
+--- a/components/viz/service/main/viz_main_impl.cc
++++ b/components/viz/service/main/viz_main_impl.cc
+@@ -262,8 +262,7 @@ void VizMainImpl::CreateFrameSinkManagerInternal(
+       gpu_service_->share_group(), format, gpu_service_->gpu_feature_info(),
+       gpu_service_->gpu_channel_manager()->gpu_preferences(),
+       gpu_service_->shared_image_manager(),
+-      gpu_service_->gpu_channel_manager()->program_cache(),
+-      gpu_service_->GetContextState());
++      gpu_service_->gpu_channel_manager()->program_cache());
+ 
+   viz_compositor_thread_runner_->CreateFrameSinkManager(
+       std::move(params), task_executor_.get(), gpu_service_.get());
+diff --git a/components/viz/test/test_gpu_service_holder.cc b/components/viz/test/test_gpu_service_holder.cc
+index d1b0de9b8b50a2871517c856701ad18b762a90c7..bd21ccc400f81fcd6deae50d79d329dffef2263d 100644
+--- a/components/viz/test/test_gpu_service_holder.cc
++++ b/components/viz/test/test_gpu_service_holder.cc
+@@ -193,8 +193,7 @@ void TestGpuServiceHolder::InitializeOnGpuThread(
+       gpu_service_->gpu_feature_info(),
+       gpu_service_->gpu_channel_manager()->gpu_preferences(),
+       gpu_service_->shared_image_manager(),
+-      gpu_service_->gpu_channel_manager()->program_cache(),
+-      gpu_service_->GetContextState());
++      gpu_service_->gpu_channel_manager()->program_cache());
+ 
+   completion->Signal();
+ }
+diff --git a/gpu/ipc/command_buffer_task_executor.cc b/gpu/ipc/command_buffer_task_executor.cc
+index 9bdab6666ad49f8232eaad46531c379bb912f717..fb1b239ebe7617965f51854ad79414c8b61d8988 100644
+--- a/gpu/ipc/command_buffer_task_executor.cc
++++ b/gpu/ipc/command_buffer_task_executor.cc
+@@ -21,8 +21,7 @@ CommandBufferTaskExecutor::CommandBufferTaskExecutor(
+     scoped_refptr<gl::GLShareGroup> share_group,
+     gl::GLSurfaceFormat share_group_surface_format,
+     SharedImageManager* shared_image_manager,
+-    gles2::ProgramCache* program_cache,
+-    scoped_refptr<SharedContextState> shared_context_state)
++    gles2::ProgramCache* program_cache)
+     : gpu_preferences_(gpu_preferences),
+       gpu_feature_info_(gpu_feature_info),
+       sync_point_manager_(sync_point_manager),
+@@ -31,8 +30,7 @@ CommandBufferTaskExecutor::CommandBufferTaskExecutor(
+       share_group_surface_format_(share_group_surface_format),
+       program_cache_(program_cache),
+       shader_translator_cache_(gpu_preferences_),
+-      shared_image_manager_(shared_image_manager),
+-      shared_context_state_(std::move(shared_context_state)) {
++      shared_image_manager_(shared_image_manager) {
+   DCHECK(mailbox_manager_);
+   DCHECK(shared_image_manager_);
+ }
+diff --git a/gpu/ipc/command_buffer_task_executor.h b/gpu/ipc/command_buffer_task_executor.h
+index 8b2dac28c5d6cbbb778ed0f2419c2117da626981..f39f02dfd852773959a4fd0302e56a80699c48c8 100644
+--- a/gpu/ipc/command_buffer_task_executor.h
++++ b/gpu/ipc/command_buffer_task_executor.h
+@@ -18,7 +18,6 @@
+ #include "gpu/command_buffer/service/sequence_id.h"
+ #include "gpu/command_buffer/service/service_discardable_manager.h"
+ #include "gpu/command_buffer/service/shader_translator_cache.h"
+-#include "gpu/command_buffer/service/shared_context_state.h"
+ #include "gpu/command_buffer/service/shared_image_manager.h"
+ #include "gpu/config/gpu_feature_info.h"
+ #include "gpu/config/gpu_preferences.h"
+@@ -67,16 +66,14 @@ class GL_IN_PROCESS_CONTEXT_EXPORT CommandBufferTaskExecutor {
+     virtual void ContinueTask(base::OnceClosure task) = 0;
+   };
+ 
+-  CommandBufferTaskExecutor(
+-      const GpuPreferences& gpu_preferences,
+-      const GpuFeatureInfo& gpu_feature_info,
+-      SyncPointManager* sync_point_manager,
+-      MailboxManager* mailbox_manager,
+-      scoped_refptr<gl::GLShareGroup> share_group,
+-      gl::GLSurfaceFormat share_group_surface_format,
+-      SharedImageManager* shared_image_manager,
+-      gles2::ProgramCache* program_cache,
+-      scoped_refptr<SharedContextState> shared_context_state);
++  CommandBufferTaskExecutor(const GpuPreferences& gpu_preferences,
++                            const GpuFeatureInfo& gpu_feature_info,
++                            SyncPointManager* sync_point_manager,
++                            MailboxManager* mailbox_manager,
++                            scoped_refptr<gl::GLShareGroup> share_group,
++                            gl::GLSurfaceFormat share_group_surface_format,
++                            SharedImageManager* shared_image_manager,
++                            gles2::ProgramCache* program_cache);
+   virtual ~CommandBufferTaskExecutor();
+ 
+   // Always use virtualized GL contexts if this returns true.
+@@ -122,10 +119,6 @@ class GL_IN_PROCESS_CONTEXT_EXPORT CommandBufferTaskExecutor {
+   }
+   SharedImageManager* shared_image_manager() { return shared_image_manager_; }
+ 
+-  scoped_refptr<SharedContextState> shared_context_state() {
+-    return shared_context_state_;
+-  }
+-
+   // These methods construct accessed fields if not already initialized.
+   scoped_refptr<gl::GLShareGroup> share_group();
+   gles2::Outputter* outputter();
+@@ -147,7 +140,6 @@ class GL_IN_PROCESS_CONTEXT_EXPORT CommandBufferTaskExecutor {
+   gles2::ShaderTranslatorCache shader_translator_cache_;
+   gles2::FramebufferCompletenessCache framebuffer_completeness_cache_;
+   SharedImageManager* shared_image_manager_;
+-  const scoped_refptr<SharedContextState> shared_context_state_;
+ 
+   // No-op default initialization is used in in-process mode.
+   GpuProcessActivityFlags activity_flags_;
+diff --git a/gpu/ipc/gpu_in_process_thread_service.cc b/gpu/ipc/gpu_in_process_thread_service.cc
+index 9f85b623f18ab89902b7107a1156940a71a795ea..2c20bb029c7f597f9e75750fa6fc976ead756502 100644
+--- a/gpu/ipc/gpu_in_process_thread_service.cc
++++ b/gpu/ipc/gpu_in_process_thread_service.cc
+@@ -61,8 +61,7 @@ GpuInProcessThreadService::GpuInProcessThreadService(
+     const GpuFeatureInfo& gpu_feature_info,
+     const GpuPreferences& gpu_preferences,
+     SharedImageManager* shared_image_manager,
+-    gles2::ProgramCache* program_cache,
+-    scoped_refptr<SharedContextState> shared_context_state)
++    gles2::ProgramCache* program_cache)
+     : CommandBufferTaskExecutor(gpu_preferences,
+                                 gpu_feature_info,
+                                 sync_point_manager,
+@@ -70,8 +69,7 @@ GpuInProcessThreadService::GpuInProcessThreadService(
+                                 share_group,
+                                 share_group_surface_format,
+                                 shared_image_manager,
+-                                program_cache,
+-                                std::move(shared_context_state)),
++                                program_cache),
+       task_runner_(task_runner),
+       scheduler_(scheduler) {}
+ 
+diff --git a/gpu/ipc/gpu_in_process_thread_service.h b/gpu/ipc/gpu_in_process_thread_service.h
+index 39775b735fc637c991ec85d9beab117ac416a9ae..98a0f88f9506e492322fe8c28ff2f65c79f43fa9 100644
+--- a/gpu/ipc/gpu_in_process_thread_service.h
++++ b/gpu/ipc/gpu_in_process_thread_service.h
+@@ -37,8 +37,7 @@ class GL_IN_PROCESS_CONTEXT_EXPORT GpuInProcessThreadService
+       const GpuFeatureInfo& gpu_feature_info,
+       const GpuPreferences& gpu_preferences,
+       SharedImageManager* shared_image_manager,
+-      gles2::ProgramCache* program_cache,
+-      scoped_refptr<SharedContextState> shared_context_state);
++      gles2::ProgramCache* program_cache);
+   ~GpuInProcessThreadService() override;
+ 
+   // CommandBufferTaskExecutor implementation.
+diff --git a/gpu/ipc/in_process_command_buffer.cc b/gpu/ipc/in_process_command_buffer.cc
+index ebd799b1f7e01688b2c728482a56effecf18823a..8a5ff01be96beece14cbb2d18ca558859ac1f7ef 100644
+--- a/gpu/ipc/in_process_command_buffer.cc
++++ b/gpu/ipc/in_process_command_buffer.cc
+@@ -515,8 +515,6 @@ gpu::ContextResult InProcessCommandBuffer::InitializeOnGpuThread(
+   command_buffer_ = std::make_unique<CommandBufferService>(
+       this, context_group_->memory_tracker());
+ 
+-  context_state_ = task_executor_->shared_context_state();
+-
+   if (!surface_) {
+     if (is_offscreen_) {
+       if (context_state_) {
+@@ -659,29 +657,20 @@ gpu::ContextResult InProcessCommandBuffer::InitializeOnGpuThread(
+     if (params.attribs.enable_raster_interface &&
+         !params.attribs.enable_gles2_interface) {
+       gr_shader_cache_ = params.gr_shader_cache;
+-      if (!context_state_) {
+-        context_state_ = base::MakeRefCounted<SharedContextState>(
+-            gl_share_group_, surface_, real_context,
+-            use_virtualized_gl_context_, base::DoNothing());
+-        context_state_->InitializeGL(task_executor_->gpu_preferences(),
+-                                     context_group_->feature_info());
+-        context_state_->InitializeGrContext(workarounds, params.gr_shader_cache,
+-                                            params.activity_flags);
+-      }
+-
+-      if (!context_state_->MakeCurrent(nullptr)) {
+-        DestroyOnGpuThread();
+-        LOG(ERROR) << "Failed to make context current.";
+-        return ContextResult::kTransientFailure;
+-      }
++      context_state_ = base::MakeRefCounted<SharedContextState>(
++          gl_share_group_, surface_, real_context, use_virtualized_gl_context_,
++          base::DoNothing());
++      context_state_->InitializeGL(task_executor_->gpu_preferences(),
++                                   context_group_->feature_info());
++      gr_shader_cache_ = params.gr_shader_cache;
++      context_state_->InitializeGrContext(workarounds, params.gr_shader_cache,
++                                          params.activity_flags);
+ 
+       if (base::ThreadTaskRunnerHandle::IsSet()) {
+         gr_cache_controller_.emplace(context_state_.get(),
+                                      base::ThreadTaskRunnerHandle::Get());
+       }
+ 
+-      context_ = context_state_->context();
+-
+       decoder_.reset(raster::RasterDecoder::Create(
+           this, command_buffer_.get(), task_executor_->outputter(),
+           task_executor_->gpu_feature_info(), task_executor_->gpu_preferences(),
+@@ -691,7 +680,12 @@ gpu::ContextResult InProcessCommandBuffer::InitializeOnGpuThread(
+       decoder_.reset(gles2::GLES2Decoder::Create(this, command_buffer_.get(),
+                                                  task_executor_->outputter(),
+                                                  context_group_.get()));
+-      if (use_virtualized_gl_context_) {
++    }
++
++    if (use_virtualized_gl_context_) {
++      if (context_state_) {
++        context_ = context_state_->context();
++      } else {
+         context_ = base::MakeRefCounted<GLContextVirtual>(
+             gl_share_group_.get(), real_context.get(), decoder_->AsWeakPtr());
+         if (!context_->Initialize(surface_.get(),
+@@ -705,18 +699,18 @@ gpu::ContextResult InProcessCommandBuffer::InitializeOnGpuThread(
+                         "Failed to initialize virtual GL context.";
+           return gpu::ContextResult::kFatalFailure;
+         }
++      }
+ 
+-        if (!context_->MakeCurrent(surface_.get())) {
+-          DestroyOnGpuThread();
+-          // The caller should retry making a context, but this one won't work.
+-          LOG(ERROR) << "ContextResult::kTransientFailure: "
+-                        "Could not make context current.";
+-          return gpu::ContextResult::kTransientFailure;
+-        }
+-      } else {
+-        context_ = real_context;
+-        DCHECK(context_->IsCurrent(surface_.get()));
++      if (!context_->MakeCurrent(surface_.get())) {
++        DestroyOnGpuThread();
++        // The caller should retry making a context, but this one won't work.
++        LOG(ERROR) << "ContextResult::kTransientFailure: "
++                      "Could not make context current.";
++        return gpu::ContextResult::kTransientFailure;
+       }
++    } else {
++      context_ = real_context;
++      DCHECK(context_->IsCurrent(surface_.get()));
+     }
+ 
+     if (!context_group_->has_program_cache() &&
+diff --git a/gpu/ipc/in_process_gpu_thread_holder.cc b/gpu/ipc/in_process_gpu_thread_holder.cc
+index 3b9c6aeaf5565f29008aeb36118b50f67514b780..f2fd2a05b098c195ecae8db02612574f73fa8657 100644
+--- a/gpu/ipc/in_process_gpu_thread_holder.cc
++++ b/gpu/ipc/in_process_gpu_thread_holder.cc
+@@ -73,7 +73,7 @@ void InProcessGpuThreadHolder::InitializeOnGpuThread(
+   task_executor_ = std::make_unique<GpuInProcessThreadService>(
+       task_runner(), scheduler_.get(), sync_point_manager_.get(),
+       mailbox_manager_.get(), nullptr, gl::GLSurfaceFormat(), gpu_feature_info_,
+-      gpu_preferences_, shared_image_manager_.get(), nullptr, nullptr);
++      gpu_preferences_, shared_image_manager_.get(), nullptr);
+ 
+   completion->Signal();
+ }
