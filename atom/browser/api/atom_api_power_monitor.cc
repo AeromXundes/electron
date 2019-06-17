@@ -27,8 +27,8 @@ PowerMonitor::PowerMonitor(v8::Isolate* isolate)
   shutdown_blocker_->SetShutdownHandler(
       base::Bind(&PowerMonitor::ShouldShutdown, base::Unretained(this)));
 #elif defined(OS_MACOSX)
-  Browser::Get()->SetShutdownHandler(base::Bind(&PowerMonitor::ShouldShutdown,
-                                                base::Unretained(this)));
+  Browser::Get()->SetShutdownHandler(
+      base::Bind(&PowerMonitor::ShouldShutdown, base::Unretained(this)));
 #endif
   base::PowerMonitor::Get()->AddObserver(this);
   Init(isolate);
