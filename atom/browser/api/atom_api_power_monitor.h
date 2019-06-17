@@ -46,11 +46,6 @@ class PowerMonitor : public mate::TrackableObject<PowerMonitor>,
   void OnResume() override;
 
  private:
-  void QuerySystemIdleState(v8::Isolate* isolate,
-                            int idle_threshold,
-                            const ui::IdleCallback& callback);
-  void QuerySystemIdleTime(const ui::IdleTimeCallback& callback);
-
 #if defined(OS_WIN)
   // Static callback invoked when a message comes in to our messaging window.
   static LRESULT CALLBACK WndProcStatic(HWND hwnd,
