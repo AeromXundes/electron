@@ -545,9 +545,14 @@ void NativeWindow::NotifyWindowClosed() {
     observer.OnWindowClosed();
 }
 
-void NativeWindow::NotifyWindowEndSession() {
+void NativeWindow::NotifyWindowQueryEndSession(bool isCritical, bool* block_shutdown, std::string* shutdownBlockReason){
   for (NativeWindowObserver& observer : observers_)
-    observer.OnWindowEndSession();
+    observer.OnWindowQueryEndSession(isCritical, block_shutdown, shutdownBlockReason);
+}
+
+void NativeWindow::NotifyWindowEndSession(bool isCritical, bool terminationAfterMessageProcessed) {
+  for (NativeWindowObserver& observer : observers_)
+    observer.OnWindowEndSession(isCritical, terminationAfterMessageProcessed);
 }
 
 void NativeWindow::NotifyWindowBlur() {

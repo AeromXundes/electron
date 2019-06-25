@@ -63,7 +63,8 @@ class Window : public mate::TrackableObject<Window>,
   void WillCloseWindow(bool* prevent_default) override;
   void WillDestroyNativeObject() override;
   void OnWindowClosed() override;
-  void OnWindowEndSession() override;
+  void OnWindowQueryEndSession(bool isCritical, bool* block_shutdown, std::string* shutdownBlockReason) override;
+  void OnWindowEndSession(bool isCritical, bool terminationAfterMessageProcessed) override;
   void OnWindowBlur() override;
   void OnWindowFocus() override;
   void OnWindowShow() override;
@@ -103,6 +104,7 @@ class Window : public mate::TrackableObject<Window>,
             const mate::Dictionary& options,
             mate::Handle<class WebContents> web_contents);
   // APIs for NativeWindow.
+  void SetWindowsShutdownBlockReason(const std::string& reason);
   void Close();
   void Focus();
   void Blur();
@@ -237,6 +239,7 @@ class Window : public mate::TrackableObject<Window>,
 #if defined(OS_WIN)
   typedef std::map<UINT, MessageCallback> MessageCallbackMap;
   MessageCallbackMap messages_callback_map_;
+  std::string windowsShutdownBlockReason;
 #endif
 
   v8::Global<v8::Value> browser_view_;

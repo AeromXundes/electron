@@ -243,7 +243,8 @@ class NativeWindow : public base::SupportsUserData,
   // Public API used by platform-dependent delegates and observers to send UI
   // related notifications.
   void NotifyWindowClosed();
-  void NotifyWindowEndSession();
+  void NotifyWindowQueryEndSession(bool isCritical, bool* block_shutdown, std::string* shutdownBlockReason);
+  void NotifyWindowEndSession(bool isCritical, bool terminationAfterMessageProcessed);
   void NotifyWindowBlur();
   void NotifyWindowFocus();
   void NotifyWindowShow();

@@ -171,6 +171,8 @@ class NativeWindowViews : public NativeWindow,
 
 #if defined(OS_WIN)
   // MessageHandlerDelegate:
+  std::string WindowsShutdownReason;
+  void SetWindowsShutdownReason(const std::string& reason);
   bool PreHandleMSG(
       UINT message, WPARAM w_param, LPARAM l_param, LRESULT* result) override;
   void HandleSizeEvent(WPARAM w_param, LPARAM l_param);

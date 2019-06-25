@@ -210,8 +210,21 @@ void Window::OnWindowClosed() {
       FROM_HERE, GetDestroyClosure());
 }
 
-void Window::OnWindowEndSession() {
-  Emit("session-end");
+void Window::OnWindowQueryEndSession(bool isCritical, bool* block_shutdown, std::string* shutdownBlockReason) {
+	*block_shutdown = Emit("query-session-end", isCritical);
+#if defined(OS_WIN)
+	*shutdownBlockReason = windowsShutdownBlockReason;
+#endif
+}
+
+void Window::OnWindowEndSession(bool isCritical, bool terminationAfterMessageProcessed) {
+	Emit("session-end", isCritical, terminationAfterMessageProcessed);
+}
+
+void Window::SetWindowsShutdownBlockReason(const std::string& reason) {
+#if defined(OS_WIN)
+	windowsShutdownBlockReason = reason;
+#endif
 }
 
 void Window::OnWindowBlur() {
@@ -1012,7 +1025,7 @@ void Window::BuildPrototype(v8::Isolate* isolate,
                             v8::Local<v8::FunctionTemplate> prototype) {
   prototype->SetClassName(mate::StringToV8(isolate, "BrowserWindow"));
   mate::ObjectTemplateBuilder(isolate, prototype->PrototypeTemplate())
-      .MakeDestroyable()
+	  .MakeDestroyable()
       .SetMethod("close", &Window::Close)
       .SetMethod("focus", &Window::Focus)
       .SetMethod("blur", &Window::Blur)
@@ -1129,6 +1142,7 @@ void Window::BuildPrototype(v8::Isolate* isolate,
       .SetMethod("setThumbnailClip", &Window::SetThumbnailClip)
       .SetMethod("setThumbnailToolTip", &Window::SetThumbnailToolTip)
       .SetMethod("setAppDetails", &Window::SetAppDetails)
+      .SetMethod("setWindowsShutdownBlockReason", &Window::SetWindowsShutdownBlockReason)
 #endif
 #if defined(TOOLKIT_VIEWS)
       .SetMethod("setIcon", &Window::SetIcon)
