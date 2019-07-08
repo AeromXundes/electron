@@ -202,7 +202,7 @@ bool NativeWindowViews::PreHandleMSG(
 		bool isCritical = l_param & ENDSESSION_CRITICAL;
 		bool blockShutdown = false;
 		std::string shutdownBlockReason;
-		NotifyWindowQueryEndSession(isCritical, &blockShutdown, &shutdownBlockReason);
+		blockShutdown = NotifyWindowQueryEndSession(isCritical, &shutdownBlockReason);
 		if (blockShutdown)
 		{
 			HWND mainHwnd = GetMainHwnd();

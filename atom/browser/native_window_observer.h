@@ -44,7 +44,7 @@ class NativeWindowObserver {
   // If isCritical is true, the application has 1 second to respond before termination.
   // If block_shutdown is set to true, Windows will show a UI with a list of programs blocking shutdown. You should set the shutdownBlockReason to tell the user why.
   // All handlers should return from this within 5 seconds. Otherwise, you run the risk of missing the OnWindowsQueryEndSessionCritical event.
-  virtual void OnWindowQueryEndSession(bool isCritical, bool* block_shutdown, std::string* shutdownBlockReason) {}
+  virtual bool OnWindowQueryEndSession(bool isCritical, std::string* shutdownBlockReason) { return false; }
 
   // Called when Windows sends WM_ENDSESSION message
   // Once this message is handled, the process will be terminated shortly.

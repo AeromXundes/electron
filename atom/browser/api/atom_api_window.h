@@ -63,7 +63,7 @@ class Window : public mate::TrackableObject<Window>,
   void WillCloseWindow(bool* prevent_default) override;
   void WillDestroyNativeObject() override;
   void OnWindowClosed() override;
-  void OnWindowQueryEndSession(bool isCritical, bool* block_shutdown, std::string* shutdownBlockReason) override;
+  bool OnWindowQueryEndSession(bool isCritical, std::string* shutdownBlockReason) override;
   void OnWindowEndSession(bool isCritical, bool terminationAfterMessageProcessed) override;
   void OnWindowBlur() override;
   void OnWindowFocus() override;

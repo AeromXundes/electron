@@ -210,11 +210,13 @@ void Window::OnWindowClosed() {
       FROM_HERE, GetDestroyClosure());
 }
 
-void Window::OnWindowQueryEndSession(bool isCritical, bool* block_shutdown, std::string* shutdownBlockReason) {
-	*block_shutdown = Emit("query-session-end", isCritical);
+bool Window::OnWindowQueryEndSession(bool isCritical, std::string* shutdownBlockReason) {
+	bool askedToBlockShutdown = false;
+	askedToBlockShutdown = Emit("query-session-end", isCritical);
 #if defined(OS_WIN)
 	*shutdownBlockReason = windowsShutdownBlockReason;
 #endif
+	return askedToBlockShutdown;
 }
 
 void Window::OnWindowEndSession(bool isCritical, bool terminationAfterMessageProcessed) {
