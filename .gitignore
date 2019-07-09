@@ -26,6 +26,7 @@
 /build/
 /dist/
 /external_binaries/
+/npm/pack/
 /out/
 /vendor/.gclient
 /vendor/debian_jessie_amd64-sysroot/
