@@ -23,7 +23,7 @@ const jsonFields = [
 
 // Assumes the current working directory is the root electron folder.
 
-let dir = path.join('.', 'npm', 'pack')
+let dir = path.join('.', 'out', 'npm-package')
 
 if(fs.existsSync(dir)) {
     fs.removeSync(dir)
