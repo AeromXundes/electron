@@ -47,38 +47,41 @@ def main():
   args = parser.parse_args()
   curr_version = get_electron_version()
 
-  if args.bump not in ['stable', 'beta', 'nightly']:
-    raise Exception('bump must be set to either stable, beta or nightly')
+  #if args.bump not in ['stable', 'beta', 'nightly']:
+  #  raise Exception('bump must be set to either stable, beta or nightly')
 
-  if is_nightly(curr_version):
-    if args.bump == 'nightly':
-      version = get_next_nightly(curr_version)
-    elif args.bump == 'beta':
-      version = get_next_beta(curr_version)
-    elif args.bump == 'stable':
-      version = get_next_stable_from_pre(curr_version)
-    else:
-      not_reached()
-  elif is_beta(curr_version):
-    if args.bump == 'nightly':
-      version = get_next_nightly(curr_version)
-    elif args.bump == 'beta':
-      version = get_next_beta(curr_version)
-    elif args.bump == 'stable':
-      version = get_next_stable_from_pre(curr_version)
-    else:
-      not_reached()
-  elif is_stable(curr_version):
-    if args.bump == 'nightly':
-      version = get_next_nightly(curr_version)
-    elif args.bump == 'beta':
-      raise Exception("You can\'t bump to a beta from stable")
-    elif args.bump == 'stable':
-      version = get_next_stable_from_stable(curr_version)
-    else:
-      not_reached()
+  if args.new_version != None:
+    version = args.new_version
   else:
-    raise Exception("Invalid current version: " + curr_version)
+    if is_nightly(curr_version):
+      if args.bump == 'nightly':
+        version = get_next_nightly(curr_version)
+      elif args.bump == 'beta':
+        version = get_next_beta(curr_version)
+      elif args.bump == 'stable':
+        version = get_next_stable_from_pre(curr_version)
+      else:
+        not_reached()
+    elif is_beta(curr_version):
+      if args.bump == 'nightly':
+        version = get_next_nightly(curr_version)
+      elif args.bump == 'beta':
+        version = get_next_beta(curr_version)
+      elif args.bump == 'stable':
+        version = get_next_stable_from_pre(curr_version)
+      else:
+        not_reached()
+    elif is_stable(curr_version):
+      if args.bump == 'nightly':
+        version = get_next_nightly(curr_version)
+      elif args.bump == 'beta':
+        raise Exception("You can\'t bump to a beta from stable")
+      elif args.bump == 'stable':
+        version = get_next_stable_from_stable(curr_version)
+      else:
+        not_reached()
+    else:
+      raise Exception("Invalid current version: " + curr_version)
 
   if args.new_version == None and args.bump == None and args.stable == False:
     parser.print_help()

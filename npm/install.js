@@ -26,6 +26,9 @@ var mirror
 if (version.indexOf('nightly') !== -1) {
   mirror = 'https://github.com/electron/nightlies/releases/download/v'
 }
+if(version.indexOf('keysight') !== -1) {
+  mirror = 'https://artifactory.it.keysight.com/artifactory/generic-local-ansible/boxer'
+}
 
 // downloads if not cached
 download({

@@ -8,8 +8,7 @@ const files = [
   'install.js',
   'package.json',
   'README.md',
-  'LICENSE',
-  'path.txt'
+  'LICENSE'
 ]
   
 const jsonFields = [
@@ -26,9 +25,10 @@ const jsonFields = [
 
 let dir = path.join('.', 'npm', 'pack')
 
-if(!fs.existsSync(dir)) {
-  fs.mkdirSync(dir)
+if(fs.existsSync(dir)) {
+    fs.removeSync(dir)
 }
+fs.mkdirSync(dir)
 
 // copy files from `/npm` to dir
 files.forEach((name) => {
@@ -49,9 +49,9 @@ fs.writeFileSync(
   JSON.stringify(packageJson, null, 2)
 )
 
-// copy the dist folder
-let dirDist = path.join(dir, 'dist')
-if(!fs.existsSync(dirDist)) {
-  fs.mkdirSync(dirDist)
-}
-fs.copySync('./dist', dirDist)
+// // copy the dist folder
+// let dirDist = path.join(dir, 'dist')
+// if(!fs.existsSync(dirDist)) {
+//   fs.mkdirSync(dirDist)
+// }
+// fs.copySync('./dist', dirDist)
