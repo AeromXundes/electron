@@ -43,6 +43,13 @@ def main():
     dest='dry_run',
     help='just to check that version number is correct'
   )
+  parser.add_argument(
+    '--no-commit',
+    action='store_true',
+    default=False,
+    dest='no_commit',
+    help='does not do a git commit'
+  )
 
   args = parser.parse_args()
   curr_version = get_electron_version()
