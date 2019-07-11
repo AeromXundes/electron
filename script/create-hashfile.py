@@ -14,7 +14,7 @@ with open(filename,"rb") as f:
         sha256_hash.update(byte_block)
     digest = sha256_hash.hexdigest()
 
-hashFileName = "SHASUMS256.txt-" + electronVersion
+hashFileName = "SHASUMS256.txt"
 with open(hashFileName, "w") as f:
     f.write(digest)
     f.write(" *")

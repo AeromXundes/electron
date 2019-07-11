@@ -111,7 +111,8 @@ def main():
     update_version_h(versions, suffix)
     update_info_plist(version)
     update_package_json(version, suffix)
-    tag_version(version, suffix)
+    if(not args.no_commit):
+      tag_version(version, suffix)
 
   print 'Bumped to version: {0}'.format(version + suffix)
 
