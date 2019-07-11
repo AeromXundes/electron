@@ -14,9 +14,6 @@
 namespace atom {
 
 class PreferencesManager;
-#ifdef OS_WIN
-class ShutdownBlockerWin;
-#endif
 
 class RendererClientBase : public content::ContentRendererClient {
  public:
@@ -58,9 +55,6 @@ class RendererClientBase : public content::ContentRendererClient {
       override;
 
  private:
-#ifdef OS_WIN
-  std::unique_ptr<ShutdownBlockerWin> shutdown_blocker_;
-#endif
   std::unique_ptr<PreferencesManager> preferences_manager_;
   bool isolated_world_;
 

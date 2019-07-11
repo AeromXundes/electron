@@ -15,17 +15,10 @@ namespace atom {
 
 namespace api {
 
-PowerMonitor::PowerMonitor(v8::Isolate* isolate)
-#ifdef OS_WIN
-    : shutdown_blocker_(new ShutdownBlockerWin(false))
-#endif
-{
+PowerMonitor::PowerMonitor(v8::Isolate* isolate) {
 #if defined(OS_LINUX)
-  SetShutdownHandler(
-      base::Bind(&PowerMonitor::ShouldShutdown, base::Unretained(this)));
-#elif defined(OS_WIN)
-  shutdown_blocker_->SetShutdownHandler(
-      base::Bind(&PowerMonitor::ShouldShutdown, base::Unretained(this)));
+  SetShutdownHandler(base::Bind(&PowerMonitor::ShouldShutdown,
+                                base::Unretained(this)));
 #elif defined(OS_MACOSX)
   Browser::Get()->SetShutdownHandler(
       base::Bind(&PowerMonitor::ShouldShutdown, base::Unretained(this)));

@@ -5,13 +5,8 @@
 #ifndef ATOM_BROWSER_API_ATOM_API_POWER_MONITOR_H_
 #define ATOM_BROWSER_API_ATOM_API_POWER_MONITOR_H_
 
-#include <memory>
-
 #include "atom/browser/api/trackable_object.h"
 #include "atom/browser/lib/power_observer.h"
-#if defined(OS_WIN)
-#include "atom/common/lib/shutdown_blocker_win.h"
-#endif
 #include "base/compiler_specific.h"
 #include "native_mate/handle.h"
 
@@ -46,31 +41,6 @@ class PowerMonitor : public mate::TrackableObject<PowerMonitor>,
   void OnResume() override;
 
  private:
-#if defined(OS_WIN)
-  // Static callback invoked when a message comes in to our messaging window.
-  static LRESULT CALLBACK WndProcStatic(HWND hwnd,
-                                        UINT message,
-                                        WPARAM wparam,
-                                        LPARAM lparam);
-
-  LRESULT CALLBACK WndProc(HWND hwnd,
-                           UINT message,
-                           WPARAM wparam,
-                           LPARAM lparam);
-
-  // The window class of |window_|.
-  ATOM atom_;
-
-  // The handle of the module that contains the window procedure of |window_|.
-  HMODULE instance_;
-
-  // The window used for processing events.
-  HWND window_;
-
-  // An object that encapsulates logic to handle shutdown/reboot events
-  std::unique_ptr<ShutdownBlockerWin> shutdown_blocker_;
-#endif
-
   DISALLOW_COPY_AND_ASSIGN(PowerMonitor);
 };
 

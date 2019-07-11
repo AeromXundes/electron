@@ -9,7 +9,6 @@
 
 #include "atom/common/atom_constants.h"
 #include "atom/common/color_util.h"
-#include "atom/common/native_mate_converters/callback.h"
 #include "atom/common/native_mate_converters/value_converter.h"
 #include "atom/common/options_switches.h"
 #include "atom/renderer/atom_autofill_agent.h"
@@ -45,7 +44,6 @@
 
 #if defined(OS_WIN)
 #include <shlobj.h>
-#include "atom/common/lib/shutdown_blocker_win.h"
 #endif
 
 // This is defined in later versions of Chromium, remove this if you see
@@ -77,12 +75,7 @@ std::vector<std::string> ParseSchemesCLISwitch(const char* switch_name) {
 
 }  // namespace
 
-RendererClientBase::RendererClientBase()
-#ifdef OS_WIN
-    : shutdown_blocker_(new ShutdownBlockerWin(true))
-#endif
-{
-  auto* command_line = base::CommandLine::ForCurrentProcess();
+RendererClientBase::RendererClientBase() {
   // Parse --standard-schemes=scheme1,scheme2
   std::vector<std::string> standard_schemes_list =
       ParseSchemesCLISwitch(switches::kStandardSchemes);
@@ -115,11 +108,6 @@ void RendererClientBase::AddRenderBindings(
   dict.SetMethod(
       "getRenderProcessPreferences",
       base::Bind(GetRenderProcessPreferences, preferences_manager_.get()));
-#ifdef OS_WIN
-  dict.SetMethod("setShutdownHandler",
-                 base::Bind(&ShutdownBlockerWin::SetShutdownHandler,
-                            base::Unretained(shutdown_blocker_.get())));
-#endif
 }
 
 void RendererClientBase::RenderThreadStarted() {
